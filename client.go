@@ -1,8 +1,6 @@
 package main
 
 import (
-    "time"
-    "math/rand"
     "fmt"
     "bufio"
     "os"
@@ -20,6 +18,7 @@ func print(ctx context.Context, client chat.ChatClient, author string, topic str
     if err != nil {
         println("Error: %v", err)
     }
+    defer stream.CloseSend()
     
     for {
         fmt.Printf("\r                                                        \r")
@@ -30,7 +29,6 @@ func print(ctx context.Context, client chat.ChatClient, author string, topic str
         }
         fmt.Println(message)
         fmt.Print(string(input))
-        time.Sleep(time.Duration(rand.Intn(10000)) * time.Millisecond)
    }
 }
 
@@ -49,10 +47,10 @@ func main() {
     if err != nil {
         println("did not connect: %v", err)
     }
-    defer conn.Close()
     println("Starting client")
     println("Joining as user:", author)
     println("To topic:", topic)
+    println()
     fmt.Print(string(input))
 
     ctx := context.Background()
@@ -74,7 +72,6 @@ func main() {
             if err != nil {
                 println("Error: %v", err)
             }
-            fmt.Print("Data sent to server: ", string(input[4:]),"\n>>> ")
             input = input[:4]
         } else {
         input = append(input, b)

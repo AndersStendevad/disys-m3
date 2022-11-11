@@ -2,8 +2,6 @@ package main
 
 import (
     "sync"
-    "time"
-    "math/rand"
     "fmt"
     "net"
     chat "github.com/AndersStendevad/disys-m3/grpc"
@@ -54,19 +52,6 @@ var eb = &EventBus{
    subscribers: map[string]DataChannelSlice{},
 }
 
-func publisTo(topic string, data string)  {
-   for {
-      eb.Publish(topic, "Hi")
-      eb.Publish(topic, data)
-      eb.Publish(topic, "goodbye")
-      time.Sleep(time.Duration(rand.Intn(1000)) * time.Millisecond)
-   }
-}
-
-func printMessageEvent(ch string, data MessageEvent)  {
-   fmt.Printf("Channel: %s; Topic: %s; MessageEvent: %v\n", ch, data.Topic, data.Data)
-}
-
 type ChatServer struct {
     chat.UnimplementedChatServer
 }
@@ -87,48 +72,29 @@ func main()  {
 
 }
 
-func (s *ChatServer) Send(context.Context, *chat.Message) (*chat.MessageAck, error) {
-    fmt.Println("Send")
-    msg := chat.MessageAck{}
-    return &msg, nil
+func (s *ChatServer) Send(ctx context.Context, in *chat.Message) (*chat.MessageAck, error) {
+    msg := in.Author+ ": " +in.Message
+    fmt.Println("Server received message:", in)
+    eb.Publish(in.Topic, msg)
+    response := chat.MessageAck{Flag: "OK"}
+    return &response, nil
 }
 
-func (s *ChatServer) Receive(*chat.Request, chat.Chat_ReceiveServer) error {
-    fmt.Println("Receive")
+func (s *ChatServer) Receive(msg *chat.Request, stream chat.Chat_ReceiveServer) error {
+    ch := make(chan MessageEvent)
+    eb.Subscribe(msg.Topic, ch)
+    eb.Publish(msg.Topic, msg.Author + " joined")
+    fmt.Println("Server received subscriber:", msg)
+    for {
+        select {
+        case <-stream.Context().Done():
+            eb.Publish(msg.Topic, msg.Author + " left")
+            fmt.Println("Server lost subscriber:", msg)
+            return nil
+        case d := <-ch:
+            stream.Send(&chat.Message{Message: d.Data.(string)})
+        }
+    }
     return nil
 }
 
-func old(){
-    // old
-    ch1 := make(chan MessageEvent)
-    ch2 := make(chan MessageEvent)
-    ch3 := make(chan MessageEvent)
-    eb.Subscribe("topic1", ch1)
-    eb.Subscribe("topic2", ch2)
-    eb.Subscribe("topic2", ch3)
-    go publisTo("topic1", "Hi topic 1")
-    go publisTo("topic2", "Welcome to topic 2")
-    go publisTo("topic3", "You joined topic 3")
-    for {
-        select {
-        case d := <-ch1:
-            go printMessageEvent("ch1", d)
-        case d := <-ch2:
-            go printMessageEvent("ch2", d)
-        case d := <-ch3:
-            go printMessageEvent("ch3", d)
-        }
-    }
-}
-
-func handle_connection(topic string) {
-    ch := make(chan MessageEvent)
-    eb.Subscribe(topic, ch)
-    for {
-        select {
-        case d := <-ch:
-            go printMessageEvent(topic, d)
-        }
-    }
-}
-// https://dev.bitolog.com/grpc-long-lived-streaming/
