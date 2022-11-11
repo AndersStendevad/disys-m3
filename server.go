@@ -5,6 +5,9 @@ import (
     "time"
     "math/rand"
     "fmt"
+    "net"
+    chat "github.com/AndersStendevad/disys-m3/grpc"
+    "google.golang.org/grpc"
 )
 type MessageEvent struct {
    Data interface{}
@@ -62,26 +65,78 @@ func publisTo(topic string, data string)  {
 func printMessageEvent(ch string, data MessageEvent)  {
    fmt.Printf("Channel: %s; Topic: %s; MessageEvent: %v\n", ch, data.Topic, data.Data)
 }
-func main()  {
-   ch1 := make(chan MessageEvent)
-   ch2 := make(chan MessageEvent)
-   ch3 := make(chan MessageEvent)
-   eb.Subscribe("topic1", ch1)
-   eb.Subscribe("topic2", ch2)
-   eb.Subscribe("topic2", ch3)
-   go publisTo("topic1", "Hi topic 1")
-   go publisTo("topic2", "Welcome to topic 2")
-   go publisTo("topic3", "You joined topic 3")
-   for {
-      select {
-      case d := <-ch1:
-         go printMessageEvent("ch1", d)
-      case d := <-ch2:
-         go printMessageEvent("ch2", d)
-      case d := <-ch3:
-         go printMessageEvent("ch3", d)
-      }
-   }
+
+type ChatServer struct {
+    chat.UnimplementedChatServer
 }
 
+func main()  {
+    lis, err := net.Listen("tcp", ":8080")
+    if err != nil {
+        fmt.Printf("failed to listen: %v", err)
+    }
+    var opts []grpc.ServerOption
+    server := grpc.NewServer(opts...)
+    chat.RegisterChatServer(server, &ChatServer{})
+
+
+    if err := server.Serve(lis); err != nil {
+        fmt.Printf("failed to serve: %v", err)
+    }
+
+}
+
+func (s *ChatServer) Send(stream chat.Chat_ChatServer) error {
+    for {
+        msg, err := stream.Recv()
+        if err != nil {
+            return err
+        }
+        fmt.Println(msg)
+    }
+}
+
+func (s *ChatServer) Receive(stream chat.Chat_ChatServer) error {
+    for {
+        msg, err := stream.Recv()
+        if err != nil {
+            return err
+        }
+        fmt.Println(msg)
+    }
+}
+
+func old(){
+    // old
+    ch1 := make(chan MessageEvent)
+    ch2 := make(chan MessageEvent)
+    ch3 := make(chan MessageEvent)
+    eb.Subscribe("topic1", ch1)
+    eb.Subscribe("topic2", ch2)
+    eb.Subscribe("topic2", ch3)
+    go publisTo("topic1", "Hi topic 1")
+    go publisTo("topic2", "Welcome to topic 2")
+    go publisTo("topic3", "You joined topic 3")
+    for {
+        select {
+        case d := <-ch1:
+            go printMessageEvent("ch1", d)
+        case d := <-ch2:
+            go printMessageEvent("ch2", d)
+        case d := <-ch3:
+            go printMessageEvent("ch3", d)
+        }
+    }
+}
+
+func handle_connection(topic string) {
+    ch := make(chan MessageEvent)
+    eb.Subscribe(topic, ch)
+    for {
+        select {
+        case d := <-ch:
+            go printMessageEvent(topic, d)
+        }
+    }
+}
 // https://dev.bitolog.com/grpc-long-lived-streaming/
