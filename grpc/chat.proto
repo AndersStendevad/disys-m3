@@ -2,4 +2,24 @@ syntax = "proto3";
 
 package chat;
 
-option go_package = 
+option go_package = "https://github.com/AndersStendevad/disys-m3;chat";
+
+service Chat {
+    rpc Send (Message) returns (MessageAck) {}
+    rpc Receive (Request) returns (stream Message) {}
+}
+
+message Message {
+    string author = 1;
+    string topic = 2;
+    string message = 3;
+}
+
+message MessageAck {
+    string flag = 1;
+}
+
+message Request {
+    string author = 1;
+    string topic = 2;
+}
