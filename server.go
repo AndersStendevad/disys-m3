@@ -8,6 +8,7 @@ import (
     "net"
     chat "github.com/AndersStendevad/disys-m3/grpc"
     "google.golang.org/grpc"
+    "context"
 )
 type MessageEvent struct {
    Data interface{}
@@ -86,24 +87,15 @@ func main()  {
 
 }
 
-func (s *ChatServer) Send(stream chat.Chat_ChatServer) error {
-    for {
-        msg, err := stream.Recv()
-        if err != nil {
-            return err
-        }
-        fmt.Println(msg)
-    }
+func (s *ChatServer) Send(context.Context, *chat.Message) (*chat.MessageAck, error) {
+    fmt.Println("Send")
+    msg := chat.MessageAck{}
+    return &msg, nil
 }
 
-func (s *ChatServer) Receive(stream chat.Chat_ChatServer) error {
-    for {
-        msg, err := stream.Recv()
-        if err != nil {
-            return err
-        }
-        fmt.Println(msg)
-    }
+func (s *ChatServer) Receive(*chat.Request, chat.Chat_ReceiveServer) error {
+    fmt.Println("Receive")
+    return nil
 }
 
 func old(){
