@@ -61,7 +61,7 @@ The client has two go routines. One that sends messages and one the prints the i
 You can disconnect with \<ctrl + c\>.
 
 ## Server
-The server works concurrently and has as many connections open as clients. These have a bi-directional stream open to be able to send messages back to the clients when they come in.
+The server works concurrently and has as many connections open as clients. These have a server to client directional stream open to be able to send messages back to the clients when they come in.
 
 When a users joins, the server will publish a message to the chat. If the connection is dropped, the server will publish a message with user left before closing the go routine.
 
