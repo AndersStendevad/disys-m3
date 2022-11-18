@@ -32,9 +32,8 @@ message MessageAck {
 message Request {
     string author = 1;
     string topic = 2;
-}```
-
-
+}
+```
 
 ## Running the code
 
