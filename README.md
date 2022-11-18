@@ -31,7 +31,7 @@ The server has no log of messages. Instead an Eventbus is used. This is a struct
 
 ## Example of running code:
 <code>
-    $ go run server.go 
+    go run server.go 
     time: 1  Server received subscriber: author:"Anders"  topic:"itu"
     time: 2  Server received message on topic: itu , with message: Anders joined
     time: 3  Server broadcast message to subscribers
@@ -61,7 +61,7 @@ The server has no log of messages. Instead an Eventbus is used. This is a struct
 </code>
 
 <code>
-    $go run client.go Anders itu
+    go run client.go Anders itu
     Starting client
     Joining as user: Anders
     To topic: itu
@@ -81,7 +81,7 @@ The server has no log of messages. Instead an Eventbus is used. This is a struct
 </code>
 
 <code>
-    $go run client.go Emil itu
+    go run client.go Emil itu
     Starting client
     Joining as user: Emil
     To topic: itu
@@ -105,7 +105,7 @@ The server has no log of messages. Instead an Eventbus is used. This is a struct
 </code>
 
 <code>
-    $go run client.go Sebastian itu
+    go run client.go Sebastian itu
     Starting client
     Joining as user: Sebastian
     To topic: itu
