@@ -30,7 +30,8 @@ When a users joins, the server will publish a message to the chat. If the connec
 The server has no log of messages. Instead an Eventbus is used. This is a struct which contain channels to connected users. When an event is published to the eventbus on a topic, all channels (clients connected) will get a copy of the messages.
 
 ## Example of running code:
-<code>
+
+```
     go run server.go 
     time: 1  Server received subscriber: author:"Anders"  topic:"itu"
     time: 2  Server received message on topic: itu , with message: Anders joined
@@ -58,9 +59,9 @@ The server has no log of messages. Instead an Eventbus is used. This is a struct
     time: 24  Server broadcast message to subscribers
     time: 25  Server received message on topic: itu , with message: Emil: sorry connection issues
     time: 26  Server broadcast message to subscribers
-</code>
+```
 
-<code>
+```
     go run client.go Anders itu
     Starting client
     Joining as user: Anders
@@ -78,9 +79,9 @@ The server has no log of messages. Instead an Eventbus is used. This is a struct
     message:"Lamport timestamp: 21 | Anders: Now I am all alone :("
     message:"Lamport timestamp: 24 | Emil joined"           
     message:"Lamport timestamp: 26 | Emil: sorry connection issues"
-</code>
+```
 
-<code>
+```
     go run client.go Emil itu
     Starting client
     Joining as user: Emil
@@ -102,9 +103,8 @@ The server has no log of messages. Instead an Eventbus is used. This is a struct
     message:"Lamport timestamp: 24 | Emil joined"           
     sorry connection issues                                 
     message:"Lamport timestamp: 26 | Emil: sorry connection issues"
-</code>
-
-<code>
+```
+```
     go run client.go Sebastian itu
     Starting client
     Joining as user: Sebastian
@@ -112,7 +112,6 @@ The server has no log of messages. Instead an Eventbus is used. This is a struct
 
     message:"Lamport timestamp: 13 | Sebastian joined"      
     What are you talking b^?abo^?^Csignal: interrupt
-</code>
-
+```
 # Report
 
