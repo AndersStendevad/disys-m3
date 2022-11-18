@@ -13,7 +13,8 @@ From the clients perspective it is just a request to get a stream of messages on
 Here is the proto file:
 We use MessageAck as a flag to acknowledge that a published message went trough. Other than that Messages need author, topic and message. Requests only need author and topic. The Message message is reused for Send and Receive.
 
-```service Chat {
+```
+service Chat {
     rpc Send (Message) returns (MessageAck) {}
     rpc Receive (Request) returns (stream Message) {}
 }
