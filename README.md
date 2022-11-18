@@ -34,6 +34,9 @@ message Request {
     string topic = 2;
 }
 ```
+Lamport timestamps are implemented serverside. Each change in the EventBus increaments the Lamport timestamp. Every time this happens we lock the EventBus for other Publish, Subscribe and UnSubscribe. This is to ensure the consisticy for the clients. Broadcast happen as conrutines as the connections are still open through other go rutines. So we keep a high avalaibality and throughput. while keeping the Lock state as short as possible. 
+
+Right now we only the display the lamport time on the client. So in the rare case two messages are coming in with the wrong order, you could use the lamporttime to figure out the correct order clientside and display the chat acordingly. 
 
 ## Running the code
 
