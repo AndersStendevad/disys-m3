@@ -1,5 +1,40 @@
 # Mandatory 3
 ### By Anders and Emil
+
+## Report
+This is a server-client architecture using streaming from the server to each client. 
+To make the clinetside code easy to work with, we decide to keep as much logic serverside as possible. Therefore we only implement 2 gRPC methods:
+
+**Send**
+To send a message to the server. This method does not require that a receive stream is running, but this could be implemented serverside.
+**Receive**
+From the clients perspective it is just a request to get a stream of messages on a topic. Subscribe and UnSubscribe are handled serverside.
+
+Here is the proto file:
+We use MessageAck as a flag to acknowledge that a published message went trough. Other than that Messages need author, topic and message. Requests only need author and topic. The Message message is reused for Send and Receive.
+
+```service Chat {
+    rpc Send (Message) returns (MessageAck) {}
+    rpc Receive (Request) returns (stream Message) {}
+}
+
+message Message {
+    string author = 1;
+    string topic = 2;
+    string message = 3;
+}
+
+message MessageAck {
+    string flag = 1;
+}
+
+message Request {
+    string author = 1;
+    string topic = 2;
+}```
+
+
+
 ## Running the code
 
 Starting the server by running this command. The server takes no arguments
@@ -113,5 +148,3 @@ The server has no log of messages. Instead an Eventbus is used. This is a struct
     message:"Lamport timestamp: 13 | Sebastian joined"      
     What are you talking b^?abo^?^Csignal: interrupt
 ```
-# Report
-
