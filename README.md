@@ -67,6 +67,18 @@ When a users joins, the server will publish a message to the chat. If the connec
 
 The server has no log of messages. Instead an Eventbus is used. This is a struct which contain channels to connected users. When an event is published to the eventbus on a topic, all channels (clients connected) will get a copy of the messages.
 
+## EventBus
+The EventBus has a single writepath, but many readpaths. This reduces the time spent waiting for the server to be ready. Below is a short description of each method of EventBus
+
+### Publish
+The server takes Messages from clients through the Send gRPC. When a message reaches the server it will call Publish from the newly spawned concurrent gorutine. Publish will Aquire the EventBus Lock and hold it while it sends the message out to all Subscribers through one go channel for each subscribers. This is an opteration which is also started as new gorutines. So we make sure that everyone gets the message as fast a possible. Then the Lock is released. We increment the Lamport Timestamp once for each mesages resceived. 
+
+### Subscribe
+Subscribe is called when a new client calls the Request gRPC. This sets up a channel which is added to a map of all the Subscribers of the topic. This means that you can have many topics open on the server at once. The EventBus Lock is aquired like with Publish while a client is added. The channel is returned so the still running Request gRPC can wait for new messages and stream them to the client. We increment the Lamport Timestamp once for each new subscriber. 
+
+### UnSubscribe
+This is called when the server finds that a Request gRPC call gets a closed connection. Say the client disconnects og exits the chat. Now the revrese of Subscribe happens. The Lock is aquired and the client is removed from the EventBus. We increment the Lamport Timestamp once for each lost subscriber. 
+
 ## Example of running code:
 
 ```
