@@ -1,3 +1,57 @@
+/*
+┌──────────────────────────────┐  ┌──────────────────────────────┐
+│                              │  │                              │
+│  Client                      │  │  Server                      │
+│  ------                      │  │  ------                      │
+│                              │  │                              │
+│  Can Request messages        │  │  Handles new Subscribers     │
+│                              │  │                              │
+│  Can Send messages to topic  │  │  Unsubscribes disconnected   │
+│                              │  │  users                       │
+│  Can use Lamport timstamp    │  │                              │
+│  To figure out the order or  │  │  Increment lamport timestamp │
+│  lost messages               │  │  on every action serverside  │
+│                              │  │                              │
+└──────────────────────────────┘  └──────────────────────────────┘
+_________________________________________________________________________________
+
+┌──────────────────────────────┐
+│                              │
+│  Client 1                    │
+│                              │            ┌───────────────────────────────────┐
+│  username : Anders           │ Receive    │                                   │
+│  topic    : itu              ├───────────►│  Server                           │
+│                              │   Messages │  ------                           │
+│  Send     : Send 1 Message   │ ◄───────── │                                   │
+│  Receive  : Get stream of    │   Send     │  EventBus struct:                 │
+│             messages         ├───────────►│    Subscribe                      │
+└──────────────────────────────┘            │    Unsubscribe                    │
+                                            │    Publish                        │
+┌──────────────────────────────┐            │                                   │
+│                              │            │  Send gRPC:                       │
+│  Client 2                    │            │    Will get a message and publish │
+│                              │ Receive    │    it to the EventBus             │
+│  username : Emil             ├───────────►│    Send back ACK to client        │
+│  topic    : itu              │   Messages │                                   │
+│                              │ ◄───────── │  Receive gRPC:                    │
+│  Send     : Send 1 Message   │   Send     │    Open stream to client          │
+│  Receive  : Get stream of    ├───────────►│                                   │
+│             messages         │            │    Subscribe client to topic      │
+└──────────────────────────────┘            │    through EventBus               │
+                                            │                                   │
+┌──────────────────────────────┐            │    Stream messages from EventBus  │
+│                              │ Receive    │    to client                      │
+│  Client 3                    ├───────────►│                                   │
+│                              │   Messages │                                   │
+│  username : Sebastian        │ ◄───────── │                                   │
+│  topic    : itu              │   Send     │                                   │
+│                              ├───────────►└───────────────────────────────────┘
+│  Send     : Send 1 Message   │
+│  Receive  : Get stream of    │
+│             messages         │
+└──────────────────────────────┘
+ */
+
 package main
 
 import (
