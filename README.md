@@ -1,5 +1,43 @@
 # Mandatory 3
 ### By Anders and Emil
+
+## Report
+This is a server-client architecture using streaming from the server to each client. 
+To make the clinetside code easy to work with, we decide to keep as much logic serverside as possible. Therefore we only implement 2 gRPC methods:
+
+**Send**
+To send a message to the server. This method does not require that a receive stream is running, but this could be implemented serverside.
+**Receive**
+From the clients perspective it is just a request to get a stream of messages on a topic. Subscribe and UnSubscribe are handled serverside.
+
+Here is the proto file:
+We use MessageAck as a flag to acknowledge that a published message went trough. Other than that Messages need author, topic and message. Requests only need author and topic. The Message message is reused for Send and Receive.
+
+```
+service Chat {
+    rpc Send (Message) returns (MessageAck) {}
+    rpc Receive (Request) returns (stream Message) {}
+}
+
+message Message {
+    string author = 1;
+    string topic = 2;
+    string message = 3;
+}
+
+message MessageAck {
+    string flag = 1;
+}
+
+message Request {
+    string author = 1;
+    string topic = 2;
+}
+```
+Lamport timestamps are implemented serverside. Each change in the EventBus increaments the Lamport timestamp. Every time this happens we lock the EventBus for other Publish, Subscribe and UnSubscribe. This is to ensure the consisticy for the clients. Broadcast happen as conrutines as the connections are still open through other go rutines. So we keep a high avalaibality and throughput. while keeping the Lock state as short as possible. 
+
+Right now we only the display the lamport time on the client. So in the rare case two messages are coming in with the wrong order, you could use the lamporttime to figure out the correct order clientside and display the chat acordingly. 
+
 ## Running the code
 
 Starting the server by running this command. The server takes no arguments
@@ -23,7 +61,7 @@ The client has two go routines. One that sends messages and one the prints the i
 You can disconnect with \<ctrl + c\>.
 
 ## Server
-The server works concurrently and has as many connections open as clients. These have a bi-directional stream open to be able to send messages back to the clients when they come in.
+The server works concurrently and has as many connections open as clients. These have a server to client directional stream open to be able to send messages back to the clients when they come in.
 
 When a users joins, the server will publish a message to the chat. If the connection is dropped, the server will publish a message with user left before closing the go routine.
 
@@ -167,4 +205,3 @@ ________________________________________________________________________________
 │             messages         │
 └──────────────────────────────┘ 
 ```
-
